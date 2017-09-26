@@ -13,6 +13,7 @@ func init() {
 func PopCount(x uint64) int {
     var result byte
     for i := 0; i < 8; i++ {
-        result += pc[byte(x>>(i*8))]
+        result += pc[byte(x>>uint(i*8))]
+    }
     return int(result)
 }
