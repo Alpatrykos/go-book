@@ -1,4 +1,4 @@
-package popcount_exercise
+package popcount_64shifts
 
 //pc[i] jest liczebnoscia populacji i.
 var pc [256]byte
