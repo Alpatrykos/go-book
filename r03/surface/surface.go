@@ -54,7 +54,7 @@ func corner(i, j int) (float64, float64, error) {
     y := xyrange * (float64(j)/cells - 0.5)
 
     // Obliczanie wysokosci z powierzchni
-    z := f(x, y)
+    z := bumps(x, y)
     if math.IsNaN(z) {
         return 0, 0, errors.New("Undefined value")
     }
@@ -68,4 +68,13 @@ func corner(i, j int) (float64, float64, error) {
 func f(x, y float64) float64 {
     r := math.Hypot(x, y) // odleglosc od punktu 0,0
     return math.Sin(r) / r
+}
+
+// Wygeneruj tube 
+func tube(x, y float64) float64 {
+    return 1 / (15*(x*x + y*y)) 
+}
+
+func bumps(x, y float64) float64 {
+    return math.Sin(5*x)*math.Cos(5*y)/5
 }
