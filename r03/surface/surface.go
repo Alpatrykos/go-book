@@ -3,7 +3,6 @@ package main
 import (
     "fmt"
     "math"
-    "errors"
 )
 
 const (
@@ -22,47 +21,52 @@ func main() {
         "width='%d' height='%d'>", width, height)
     for i := 0; i < cells; i++ {
         for j := 0; j < cells; j++ {
-            var err error
+            var z1, z2, z3, z4 float64
             var ax, ay, bx, by, cx, cy, dx, dy float64
-            ax, ay, err = corner(i+1, j)
-            if err != nil {
+            style := "white"
+            ax, ay, z1 = corner(i+1, j)
+            if math.IsNaN(z1) {
                 continue
             }
-            bx, by, err = corner(i, j)
-            if err != nil {
+            bx, by, z2 = corner(i, j)
+            if math.IsNaN(z2) {
                 continue
             }
-            cx, cy, err = corner(i, j+1)
-            if err != nil {
+            cx, cy, z3 = corner(i, j+1)
+            if math.IsNaN(z3) {
                 continue
             }
-            dx, dy, err = corner(i+1, j+1)
-            if err != nil {
+            dx, dy, z4 = corner(i+1, j+1)
+            if math.IsNaN(z4) {
                 continue
+            }
+            z := (z1+z2+z3+z4) / 4
+            if z > 0 {
+                style = "red"
+            }
+            if z < 0 {
+                style = "blue"
             }
 
-          fmt.Printf("<polygon points='%g,%g %g,%g %g,%g %g,%g' />\n",
-                ax, ay, bx, by, cx, cy, dx, dy)
+            fmt.Printf("<polygon points='%g,%g %g,%g %g,%g %g,%g' style='fill: %s' />\n",
+                ax, ay, bx, by, cx, cy, dx, dy, style)
         }
     }
     fmt.Println("</svg>")
 }
 
-func corner(i, j int) (float64, float64, error) {
+func corner(i, j int) (float64, float64, float64) {
     // Znajdowanie x,y, w rogu komorki i,j
     x := xyrange * (float64(i)/cells - 0.5)
     y := xyrange * (float64(j)/cells - 0.5)
 
     // Obliczanie wysokosci z powierzchni
-    z := bumps(x, y)
-    if math.IsNaN(z) {
-        return 0, 0, errors.New("Undefined value")
-    }
+    z := f(x, y)
 
     // Rzutowanie x,y,z izometrycznie na plotno 2D SVG (sx, sy)
     sx := width/2 + (x-y)*cos30*xyscale
     sy := height/2 + (x+y)*sin30*xyscale - z*zscale
-    return sx, sy, nil
+    return sx, sy, z
 }
 
 func f(x, y float64) float64 {
