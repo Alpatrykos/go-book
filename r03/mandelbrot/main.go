@@ -6,6 +6,7 @@ import (
     "image/png"
     "math/cmplx"
     "os"
+    "math"
 )
 
 func main() {
@@ -29,30 +30,17 @@ func main() {
 
 func mandelbrot(z complex128) color.Color {
     const iterations = 200
-    const contrast = 10
+    const contrast = 15
 
     var v complex128
     for n := uint8(0); n < iterations; n++ {
         v = v*v + z
         if cmplx.Abs(v) > 2 {
-            r, b, g := uint8(0), uint8(0), uint8(0)
-            a := uint8(255)
-            sum := 3*255
-            sum -= int(n)*contrast
-            switch sum/255 {
-            case 3:
-                r,b,g = 255, 255, 255
-            case 2:
-                r,b = 255, 255
-                g = uint8(sum % 255)
-            case 1:
-                r = 255
-                g = 0
-                b = uint8(sum % 255)
-            default:
-                r,b,g = 0, 0, 0
-            }
-            return color.RGBA{r, b, g, a}
+            nsmooth := float64(n) + 1 - math.Log(math.Log(math.Abs(float64(iterations))))/math.Log(2)
+            c := uint32(nsmooth * 0xFFFFFFFF)
+            r, g, b, a := uint8((c&0xFF000000)>>24), uint8((c&0x00FF0000)>>16), 
+                    uint8((c&0x0000FF00)>>8), uint8(c&0x000000FF)
+            return color.RGBA{r, g, b, a}
         }
     }
     return color.Black
