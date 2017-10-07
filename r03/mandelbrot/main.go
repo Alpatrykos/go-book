@@ -6,13 +6,13 @@ import (
     "image/png"
     "math/cmplx"
     "os"
-    "math"
+    //"math"
 )
 
 func main() {
     const (
         xmin, ymin, xmax, ymax = -2, -2, +2, +2
-        width, height = 1024, 1024
+        width, height = 4096, 4096
     )
 
     img := image.NewRGBA(image.Rect(0, 0, width, height))
@@ -25,7 +25,8 @@ func main() {
             img.Set(px, py, mandelbrot(z))
         }
     }
-    png.Encode(os.Stdout, img) //UWAGA: ignorowanie bledow
+    rimg := supersample(img)
+    png.Encode(os.Stdout, rimg) //UWAGA: ignorowanie bledow
 }
 
 func mandelbrot(z complex128) color.Color {
@@ -36,12 +37,32 @@ func mandelbrot(z complex128) color.Color {
     for n := uint8(0); n < iterations; n++ {
         v = v*v + z
         if cmplx.Abs(v) > 2 {
-            nsmooth := float64(n) + 1 - math.Log(math.Log(math.Abs(float64(iterations))))/math.Log(2)
-            c := uint32(nsmooth * 0xFFFFFFFF)
-            r, g, b, a := uint8((c&0xFF000000)>>24), uint8((c&0x00FF0000)>>16), 
-                    uint8((c&0x0000FF00)>>8), uint8(c&0x000000FF)
-            return color.RGBA{r, g, b, a}
+            //nsmooth := float64(n) + 1 - math.Log(math.Log(math.Abs(float64(iterations))))/math.Log(2)
+            //nsmooth /= iterations
+            //c := uint32(nsmooth * 0x00FFFFFF)
+            //r, g, b := uint8((c&0x00FF0000)>>16), uint8((c&0x0000FF00)>>8), 
+                    //uint8((c&0x000000FF))
+            return color.RGBA{contrast * (n+2), contrast * (n+1), contrast * n, 255}
         }
     }
     return color.Black
+}
+
+func supersample(img image.Image) image.Image {
+    bounds := img.Bounds()
+    ssimg := image.NewRGBA(image.Rect(0, 0, bounds.Max.X/2, bounds.Max.Y/2))
+    for py := 0; py < ssimg.Bounds().Max.Y; py++ {
+        for px := 0; px < ssimg.Bounds().Max.X; px++ {
+           r1, g1, b1, _ := img.At(2*px-1, 2*py-1).RGBA()
+           r2, g2, b2, _ := img.At(2*px, 2*py-1).RGBA()
+           r3, g3, b3, _ := img.At(2*px-1, 2*py).RGBA()
+           r4, g4, b4, _ := img.At(2*px, 2*py).RGBA()
+           avg_red := float64(r1 + r2 + r3 + r4)
+           avg_green := float64(g1 + g2 + g3 + g4)
+           avg_blue := float64(b1 + b2 + b3 + b4)
+           c := color.RGBA{uint8(avg_red/4), uint8(avg_green/4), uint8(avg_blue/4), 255}
+           ssimg.Set(px, py, c)
+       }
+   }
+   return ssimg
 }
