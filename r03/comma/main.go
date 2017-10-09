@@ -9,6 +9,18 @@ import (
 var buf bytes.Buffer
 //comma dodaje znak przecinka co 3 cyfry w lancuchu liczby rzeczywistej
 func comma(num string) string {
+    var minus string
+    var fract string
+    if num[0] == '-' {
+        minus = string('-')
+        num = num[1:]
+    }
+    for i := 0; i < len(num); i++ {
+        if num[i] == '.' {
+            fract = num[i:]
+            num = num[:i]
+        }
+    }
     n := len(num)
     var s string
     if n <= 3 {
@@ -22,6 +34,7 @@ func comma(num string) string {
     if buf.Len() > 0 {
         s = buf.String() + s
     }
+    s = minus + s + fract
     return s
 }
 func main() {
