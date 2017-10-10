@@ -6,13 +6,12 @@ import (
     "image/png"
     "math/cmplx"
     "os"
-    //"math"
 )
 
 func main() {
     const (
         xmin, ymin, xmax, ymax = -2, -2, +2, +2
-        width, height = 4096, 4096
+        width, height = 2048, 2048
     )
 
     img := image.NewRGBA(image.Rect(0, 0, width, height))
@@ -25,24 +24,28 @@ func main() {
             img.Set(px, py, mandelbrot(z))
         }
     }
-    rimg := supersample2(img)
-    png.Encode(os.Stdout, rimg) //UWAGA: ignorowanie bledow
+    //rimg := supersample2(img)
+    png.Encode(os.Stdout, img) //UWAGA: ignorowanie bledow
 }
 
 func mandelbrot(z complex128) color.Color {
-    const iterations = 200
-    const contrast = 15
+    const iterations = 3*255
+    const contrast = 5
 
     var v complex128
-    for n := uint8(0); n < iterations; n++ {
+    for n := 0; n < iterations; n++ {
         v = v*v + z
         if cmplx.Abs(v) > 2 {
-            //nsmooth := float64(n) + 1 - math.Log(math.Log(math.Abs(float64(iterations))))/math.Log(2)
-            //nsmooth /= iterations
-            //c := uint32(nsmooth * 0x00FFFFFF)
-            //r, g, b := uint8((c&0x00FF0000)>>16), uint8((c&0x0000FF00)>>8), 
-                    //uint8((c&0x000000FF))
-            return color.RGBA{contrast * (n+2), contrast * (n+1), contrast * n, 255}
+            if n < 255 {
+                r := uint8(255-n*30)
+                return color.RGBA{r, 255, 255, 255}
+            } else if n > 255 && n < 2*255 {
+                g := uint8(255 - (n-255)*10)
+                return color.RGBA{0, g, 255, 255}
+            } else {
+                b := uint8(255 - (n-2*255)*10)
+                return color.RGBA{0, 0, b, 255}
+            }
         }
     }
     return color.Black
