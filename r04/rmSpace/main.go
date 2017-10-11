@@ -11,8 +11,8 @@ const str = "  ada      aaa"
 func main() {
     fmt.Println(str)
     fmt.Println([]byte(str))
-    s := rmSpace([]byte(str))
-    fmt.Println(s)
+    str := rmSpace([]byte(str))
+    fmt.Println(str)
 }
 
 func rmSpace(str []byte) []byte {
