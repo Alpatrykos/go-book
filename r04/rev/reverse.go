@@ -1,7 +1,30 @@
-package reverse
+package main
 
-func reverse(ptr *[10]int) {
-    for i, j := 0, len(*ptr)-1;i < j; i, j = i+1, j+1 {
-        ptr[i], ptr[j] = ptr[j], ptr[i]
+import (
+    "fmt"
+    "unicode/utf8"
+    "os"
+)
+
+func main() {
+    arg := os.Args[1]
+    reverse([]byte(arg))
+}
+        //TODO fix this; make reverse work with utf-8 encoding
+func reverse(s []byte) {
+    str := s[:]
+    for len(str) > 0 {
+        r1, size1 := utf8.DecodeRune(str)
+        fmt.Printf("%c %v\n", r1, size1)
+        fmt.Println("------")
+        r2, size2 := utf8.DecodeLastRune(str)
+        fmt.Printf("%c %v\n", r2, size2)
+        fmt.Printf("\n\n")
+        
+
+
+        str = str[size1:len(str)-size2]
+
+
     }
 }
