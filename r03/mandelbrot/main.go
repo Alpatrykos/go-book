@@ -53,9 +53,10 @@ func mandelbrot(z complex128) color.Color {
 
 // does not work as intended; the image actually becomes more aliased in a result of supersampling
 // method implemented in the fuction.
+//TODO rework
 func supersample(img image.Image) image.Image {
     bounds := img.Bounds()
-    ssimg := image.NewRGBA(image.Rect(0, 0, bounds.Max.X/2, bounds.Max.Y/2))
+    ssimg := image.NewRGBA(image.Rect(0, 0, bounds.Max.X*2, bounds.Max.*/2))
     for py := 0; py < ssimg.Bounds().Max.Y; py++ {
         for px := 0; px < ssimg.Bounds().Max.X; px++ {
            r1, g1, b1, _ := img.At(2*px-1, 2*py-1).RGBA()
