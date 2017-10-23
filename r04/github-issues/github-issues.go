@@ -11,26 +11,26 @@ import (
     "time"
 )
 
-const apiurl = "https://api.github.com/repos"
+const ApiURL = "https://api.github.com/repos"
 
-type issues struct {
-    totalcount int `json:total_count`
-    items []*issue
+type Issues struct {
+    TotalCount int `json:total_count`
+    Items []*issue
 }
 
-type issue struct {
-    number int
-    htmlurl string `json:html_url`
-    title string
-    state string
-    user *user
-    createdat time.time `json:created_at`
-    body string
+type Issue struct {
+    Number int
+    Htmlurl string `json:html_url`
+    Title string
+    State string
+    User *user
+    CreatedAt time.time `json:created_at`
+    Body string
 }
 
-type user struct {
-    login string
-    htmlurl string `json:html_url`
+type User struct {
+    Login string
+    HTMLURL string `json:html_url`
 }
 
 // get github authentication token (alternatively a config file can be used)
@@ -39,8 +39,8 @@ const authtoken = os.getenv("github_oauth_token")
 
 func main() {
     if authtoken == "" {
-        fmt.println("github_oath_token enviranment variable is not set.")
-        os.exit(1)
+        fmt.Println("github_oath_token enviranment variable is not set.")
+        os.Exit(1)
     }
     /*
     usage:
@@ -51,31 +51,38 @@ func main() {
     : -d repo number - delete an issue
 
     */
-    args := os.args[1:]
-    }
+    args := os.Args[1:]
     //todo setup creating an issue in your github repo
 
 }
 
-func getIssue(terms []string) (*issue, error) {
-    q := url.queryescape(strings.join(terms, "/"))
-    resp, err := http.get(apiurl + q)
+func getIssue(terms []string) (*Issue, error) {
+    q := url.QueryEscape(strings.join(terms, "/"))
+    resp, err := http.Get(apiurl + q)
     if err != nil {
         return nil, err
     }
 
-    if resp.statuscode != http.statusok {
-        resp.body.close()
-        return nil, fmt.errorf("uzyskanie sprawy nie powiodlo sie: %s", resp.status)
+    if resp.StatusCode != http.StatusOK {
+        resp.Body.Close()
+        return nil, fmt.Errorf("uzyskanie sprawy nie powiodlo sie: %s", resp.Status)
     }
 
     var result issue
-    if err := json.newdecoder(resp.body).decode(&result); err != nil {
-        resp.body.close()
+    if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+        resp.Body.Close()
         return nil. err
     }
-    resp.body.close()
+    resp.Body.Close()
     return &result, nil
 }
 
+func createIssue(terms []string, issue *Issue) error {
+    resp, err := http.PostForm(url, data) //change url and data later
+    if err != nil {
+        return err
+    }
+    if resp.StatusCode != http.StatusOK {
+        return fmt.Errorf("utworzenie sprawy nie powiodlo sie: %s", resp.Status)
+    }
 
