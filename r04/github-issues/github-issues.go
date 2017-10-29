@@ -6,10 +6,13 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"time"
 )
 
@@ -66,7 +69,11 @@ func main() {
 		fmt.Printf("%s\n", issue.Body)
 	} else if args[0] == "-c" {
 		issue, err := createIssue()
-		postIssue(issue)
+		if err != nil {
+			fmt.Printf("Error occured: %s", err)
+		}
+		fmt.Println(issue.Title)
+		// postIssue(issue)
 	}
 }
 
@@ -92,19 +99,56 @@ func getIssue(user, repo, number string) (*Issue, error) {
 	return &result, nil
 }
 
-func createIssue() Issue, error {
-  var result Issue
-  
+// already handles setting Title and Body
+func createIssue() (*Issue, error) {
+	var result Issue
+	var err error
+	var title, body string
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Printf("Title:")
+	title, err = reader.ReadString('\n')
+	if err != nil {
+		return nil, fmt.Errorf("Czytanie ze standardowego wejscia nie powiodlo sie: %s", err)
+	}
+	result.Title = title
+	//evoke editor to input the body
+	body, err = evokeEditor()
+	result.Body = body
+	if err != nil {
+		panic(err)
+	}
+	return &result, nil
 }
 
-//
-// func createIssue(terms []string, issue *Issue) error {
-// 	resp, err := http.PostForm(url, data) //change url and data later
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if resp.StatusCode != http.StatusOK {
-// 		return fmt.Errorf("utworzenie sprawy nie powiodlo sie: %s", resp.Status)
-// 	}
-//
-// }
+//handle empty file error or file doesnt exist
+func evokeEditor() (string, error) {
+	vi := "vim"
+	tmpDir := os.TempDir()
+	tmpFile, tmpFileErr := ioutil.TempFile(tmpDir, "tempFilePrefix")
+	if tmpFileErr != nil {
+		return "", fmt.Errorf("Blad podczas tworzenia pliku tymczasowego: %s", tmpFileErr)
+	}
+	path, err := exec.LookPath(vi)
+	if err != nil {
+		return "", fmt.Errorf("Blad podczas szukania %s:%s", vi, err)
+	}
+	cmd := exec.Command(path, tmpFile.Name())
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Start()
+	if err != nil {
+		return "", fmt.Errorf("Start sie nie udal: %s", err)
+	}
+	// fmt.Printf("Oczekiwanie na zakonczenie komendy.\n")
+	err = cmd.Wait()
+	if err != nil {
+		return "", fmt.Errorf("Komenda zakonczona z bledem: %s", err)
+	}
+	var result []byte
+	result, err = ioutil.ReadFile(tmpFile.Name())
+	if err != nil {
+		return "", fmt.Errorf("Odczytanie tymczasowego pliku nie powiodlo sie: %s", err)
+	}
+	return string(result), nil
+}
