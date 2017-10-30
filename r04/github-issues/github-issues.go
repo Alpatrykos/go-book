@@ -103,24 +103,24 @@ func getIssue(user, repo, number string) (*Issue, error) {
 func createIssue() (*Issue, error) {
 	var result Issue
 	var err error
-	var title, body string
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Printf("Title:")
-	title, err = reader.ReadString('\n')
+	result.Title, err = reader.ReadString('\n')
 	if err != nil {
 		return nil, fmt.Errorf("Czytanie ze standardowego wejscia nie powiodlo sie: %s", err)
 	}
-	result.Title = title
-	//evoke editor to input the body
-	body, err = evokeEditor()
-	result.Body = body
+	result.Body, err = evokeEditor()
 	if err != nil {
 		panic(err)
 	}
 	return &result, nil
 }
 
-//handle empty file error or file doesnt exist
+func postIssue(issue *Issue) error {
+	// TODO: post issue using github api
+}
+
+// evoke vim editor to be able to input multi lines of text
 func evokeEditor() (string, error) {
 	vi := "vim"
 	tmpDir := os.TempDir()
@@ -150,5 +150,13 @@ func evokeEditor() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Odczytanie tymczasowego pliku nie powiodlo sie: %s", err)
 	}
+	if len(result) < 1 {
+		return "", fmt.Errorf("Pusty plik.")
+	}
+	err = os.RemoveAll(tmpFile.Name())
+	if err != nil {
+		return "", fmt.Errorf("Usuniecie pliku tymczasowego nie powiodlo sie: %s", err)
+	}
+
 	return string(result), nil
 }
