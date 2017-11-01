@@ -7,6 +7,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -72,8 +73,13 @@ func main() {
 		if err != nil {
 			fmt.Printf("Error occured: %s", err)
 		}
-		fmt.Println(issue.Title)
-		// postIssue(issue)
+		err = postIssue(args[1], args[2], *issue)
+		if err != nil {
+			fmt.Printf("Error occured: %s\n", err)
+		} else {
+			fmt.Printf("Successfully posted an issue:\nNumber:%d\tTitle: %s\nBody:\n%s",
+				issue.Number, issue.Title, issue.Body)
+		}
 	}
 }
 
@@ -116,8 +122,28 @@ func createIssue() (*Issue, error) {
 	return &result, nil
 }
 
-func postIssue(issue *Issue) error {
-	// TODO: post issue using github api
+func postIssue(user, repo string, issue Issue) error {
+	// TODO: api gives 404Error, app need pull level privileges to post issue
+	var err error
+	var req []byte
+	var resp *http.Response
+	t := ApiURL + user + "/" + repo + "/issues/"
+	fmt.Println(t)
+	req, err = json.Marshal(issue)
+	if err != nil {
+		return fmt.Errorf("Wystapil blad podczas zamiany struktury na json: %s", err)
+	}
+	resp, err = http.Post(t, "application/json", bytes.NewBuffer(req))
+	if err != nil {
+		return fmt.Errorf("Wystapil blad podczas wysylania danych: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return fmt.Errorf("Postowanie nie powiodlo sie: %s",
+			resp.Status)
+	}
+	resp.Body.Close()
+	return nil
 }
 
 // evoke vim editor to be able to input multi lines of text
